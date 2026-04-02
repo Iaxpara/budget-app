@@ -5,7 +5,9 @@ from datetime import datetime
 app = Flask(__name__)
 
 # 🔐 PUT YOUR NEW CONNECTION STRING HERE
-DB_URL = "postgresql://postgres:HusnCD1f3JUxEJeh@db.umgxrwpetayuzlvsddsw.supabase.co:6543/postgres"
+import os
+
+DB_URL = os.environ.get("DB_URL")
 
 # Categories
 INCOME_CATEGORIES = [
