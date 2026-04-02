@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Budget</title>
+
+    <!-- Makes it mobile friendly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 15px;
+            max-width: 500px;
+            margin: auto;
+            font-size: 18px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .card {
+            background: #f2f2f2;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            font-size: 18px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .income { color: green; }
+        .expense { color: red; }
+
+        .transaction {
+            border-bottom: 1px solid #ccc;
+            padding: 8px 0;
+        }
+		.card form {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		.card select,
+		.card input,
+		.card button {
+			width: 100%;
+			padding: 10px;
+			font-size: 16px;
+			box-sizing: border-box;
+		}
+
+		.card button {
+			background-color: #007bff;
+			color: white;
+			border: none;
+			cursor: pointer;
+		}
+
+		.card button:hover {
+			background-color: #0056b3;
+		}
+		.card {
+			max-width: 400px;
+			margin: auto;
+		}
+    </style>
+</head>
+
+<script>
+const incomeCategories = {{ income_categories | tojson }};
+const expenseCategories = {{ expense_categories | tojson }};
+
+function updateCategories() {
+    const type = document.getElementById("type").value;
+    const categorySelect = document.getElementById("category");
+
+    categorySelect.innerHTML = "";
+
+    let categories = type === "income" ? incomeCategories : expenseCategories;
+
+    categories.forEach(cat => {
+        let option = document.createElement("option");
+        option.value = cat;
+        option.text = cat;
+        categorySelect.appendChild(option);
+    });
+}
+
+// Add new category
+function addCategory() {
+    const newCat = prompt("Enter new category:");
+    if (!newCat) return;
+
+    const type = document.getElementById("type").value;
+
+    if (type === "income") {
+        incomeCategories.push(newCat);
+    } else {
+        expenseCategories.push(newCat);
+    }
+
+    updateCategories();
+}
+
+// Run on load
+window.onload = updateCategories;
+</script>
+
+<body>
+
+<h1>My Budget</h1>
+
+<div class="card">
+    <h2>Balance: £{{ balance }}</h2>
+    <p>Income: £{{ income }} | Expenses: £{{ expense }}</p>
+</div>
+
+<div class="card">
+    <h3>Add Transaction</h3>
+
+    <form action="/add" method="post">
+        
+        <!-- ONE type selector ONLY -->
+        <select id="type" name="type" onchange="updateCategories()">
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+        </select>
+
+        <!-- Category dropdown -->
+        <select id="category" name="category"></select>
+
+        <!-- Add category button -->
+        <button type="button" onclick="addCategory()">➕ Add Category</button>
+
+        <br><br>
+
+        <!-- Amount input (if missing) -->
+        <input type="number" name="amount" placeholder="Amount" required>
+
+        <!-- Submit -->
+        <button type="submit">Add Transaction</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Transactions</h3>
+
+    {% for t in transactions %}
+        <div class="transaction">
+            <strong>{{ t[1] }}</strong><br>
+            {{ t[2] }} - {{ t[4] }}<br>
+
+            {% if t[5] == 'income' %}
+                <span class="income">+£{{ t[3] }}</span>
+            {% else %}
+                <span class="expense">-£{{ t[3] }}</span>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+<div class="card">
+    <h3>Monthly Budget</h3>
+
+    <table style="width:100%; font-size:16px;">
+        <tr>
+            <th>Category</th>
+            <th>Plan</th>
+            <th>Actual</th>
+            <th>Diff</th>
+        </tr>
+
+        {% for b in budget_data %}
+        <tr>
+            <td>{{ b.category }}</td>
+            <td>£{{ b.planned }}</td>
+            <td>£{{ b.actual }}</td>
+
+            {% if b.diff >= 0 %}
+                <td style="color:green;">£{{ b.diff }}</td>
+            {% else %}
+                <td style="color:red;">£{{ b.diff }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</body>
+</html>
