@@ -8,6 +8,7 @@ app = Flask(__name__)
 import os
 
 DB_URL = os.environ.get("DB_URL")
+print("DB_URL VALUE:", DB_URL)
 
 # Categories
 INCOME_CATEGORIES = [
